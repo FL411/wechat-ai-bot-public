@@ -1,0 +1,143 @@
+# ============================================================
+# 微信 AI 机器人 - .gitignore
+# ============================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# --- 虚拟环境 ---
+venv/
+.venv/
+env/
+.env/
+
+# --- IDE ---
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- 操作系统 ---
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# ============================================================
+# 隐私保护 - 以下目录/文件包含个人数据，绝对不能上传
+# ============================================================
+
+# 微信数据库（聊天记录、通讯录、朋友圈、会话等）
+wechat-decrypt/decrypted/
+wechat-decrypt-new/decrypted/
+wechat-decrypt-latest/decrypted/
+
+# 微信解码图片（好友头像/聊天图片）
+wechat-decrypt/decoded_images/
+wechat-decrypt-new/decoded_images/
+wechat-decrypt-latest/decoded_images/
+
+# 聊天记忆数据（包含微信ID和聊天内容）
+data/memory/
+
+# 会话记录（包含微信ID）
+data/sessions/
+
+# 日程数据（运行中生成）
+data/schedules/
+
+# 语义记忆索引（运行中生成）
+data/semantic_memory/
+
+# 角色人设运行时数据（保留示例角色模板）
+data/personas/*
+!data/personas/default/
+!data/personas/default/**
+data/role_brain/persona/*
+data/role_brain/users/
+data/role_brain/worlds/
+data/role_brain/thinking_cache/
+
+# 角色人设文档（排除所有角色文档目录）
+data/docs/*
+# 保留示例文档模板
+!data/docs/persona/示例角色/
+!data/docs/persona/示例角色/**
+
+# 主动消息用户配置（包含微信ID和昵称）
+data/proactive_users.json
+data/proactive_users_v2.json
+
+# 提醒数据（运行中生成）
+reminders_data.json
+
+# AI 模型缓存（太大，让用户自己下载）
+data/model_cache/
+
+# 本地运行时缓存
+@AutomationLog.txt
+data/runtime/
+
+# ============================================================
+# 配置文件 - 真实配置不上传，使用示例模板
+# ============================================================
+
+bot_config.yaml
+wechat-decrypt/all_keys.json
+wechat-decrypt/config.json
+wechat-decrypt-new/all_keys.json
+wechat-decrypt-new/config.json
+wechat-decrypt-latest/all_keys.json
+wechat-decrypt-latest/config.json
+all_keys_backup.json
+config_backup.json
+
+# ============================================================
+# 日志文件
+# ============================================================
+
+logs/
+*.log
+
+# ============================================================
+# 测试/临时/运行产物
+# ============================================================
+
+*.tmp
+*.temp
+*.pid
+*.backup
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 微信解密工具本地缓存 / 子仓库元数据
+wechat-decrypt/.git/
+wechat-decrypt/__pycache__/
+wechat-decrypt/tests/__pycache__/
+wechat-decrypt/decrypted/_monitor_cache/
+wechat-decrypt-new/.git/
+wechat-decrypt-new/__pycache__/
+wechat-decrypt-new/tests/__pycache__/
+wechat-decrypt-new/decrypted/_monitor_cache/
+wechat-decrypt-latest/.git/
+wechat-decrypt-latest/__pycache__/
+wechat-decrypt-latest/tests/__pycache__/
+wechat-decrypt-latest/decrypted/_monitor_cache/
+
+
+
+# 外部依赖目录（用户自行放置，不纳入本仓库）
+wechat-decrypt/
+wechat-decrypt-new/
+wechat-decrypt-latest/
+
+

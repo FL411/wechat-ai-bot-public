@@ -1,0 +1,30 @@
+# 键鼠控制
+pyautogui>=0.9.54
+pyperclip>=1.8.2
+
+# 窗口管理
+psutil>=5.9.0
+pygetwindow>=0.0.9
+pywin32>=306; sys_platform == 'win32'
+uiautomation>=2.0.18
+
+# HTTP / Web 控制台
+flask>=2.3.0
+flask-cors>=4.0.0
+requests>=2.31.0
+httpx>=0.24.0
+websockets>=11.0.0
+PyYAML>=6.0
+
+# 其他
+loguru>=0.7.0
+faster-whisper>=1.0.3
+Pillow>=10.0.0
+
+# 记忆系统增强
+sentence-transformers>=2.2.0
+
+# 微信数据库解密 / MCP 可选能力
+pycryptodome>=3.19,<4
+zstandard>=0.22,<1
+mcp>=1.0,<2

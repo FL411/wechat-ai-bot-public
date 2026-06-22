@@ -1,0 +1,37 @@
+# 定时提醒功能配置
+
+reminder:
+  # 是否启用定时提醒功能
+  enabled: true
+  
+  # 唤醒关键词 (检测用户是否想设置提醒)
+  keywords:
+    - "提醒"
+    - "提醒我"
+    - "定时"
+    - "分钟后"
+    - "小时后"
+    - "计时"
+    - "闹钟"
+    - "通知我"
+    - "叫我"
+    - "稍后"
+    - "每天"
+    - "明早"
+    - "明晚"
+  
+  # 安静时间 (不发送主动提醒)
+  quiet_hours:
+    start: "22:00"
+    end: "08:00"
+  
+  # 语音提醒配置
+  voice:
+    enabled: true
+    use_gpt_sovits: true        # 使用 GPT-SoVITS (False 则使用 Windows TTS)
+    gpt_sovits_url: "http://127.0.0.1:9880/tts"
+    ref_audio_path: "你的参考音频路径.mp3"
+    speed_factor: 1.2
+  
+  # 每用户最大提醒数量
+  max_reminders_per_user: 20

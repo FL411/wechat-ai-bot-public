@@ -1,0 +1,89 @@
+[project]
+name = "wechat-ai-bot"
+version = "1.0.0"
+description = "微信 AI 机器人 - 基于 LLM 的微信助手"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "WeChat AI Bot Team"}
+]
+keywords = ["wechat", "ai", "bot", "lmstudio"]
+
+dependencies = [
+    # 窗口控制 / 键鼠自动化
+    "pyautogui>=0.9.54",
+    "pyperclip>=1.8.2",
+    "pygetwindow>=0.0.9",
+    "psutil>=5.9.0",
+    "pywin32>=306; sys_platform == 'win32'",
+    "uiautomation>=2.0.18",
+
+    # HTTP / 网络
+    "flask>=2.3.0",
+    "flask-cors>=4.0.0",
+    "requests>=2.31.0",
+    "httpx>=0.24.0",
+    "websockets>=11.0.0",
+    "PyYAML>=6.0",
+
+    # 日志
+    "loguru>=0.7.0",
+
+    # AI / 语音识别
+    "faster-whisper>=1.0.3",
+    "Pillow>=10.0.0",
+    "sentence-transformers>=2.2.0",
+
+    # 微信数据库解密
+    "pycryptodome>=3.19,<4",
+    "zstandard>=0.22,<1",
+
+    # MCP (Model Context Protocol)
+    "mcp>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+mcp-server = [
+    "mcp>=1.0,<2",
+    "httpx>=0.24.0",
+    "websockets>=11.0.0",
+]
+
+[project.scripts]
+wechat-bot = "bot.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["bot", "bot.prompt", "clients", "memory", "proactive", "schedule", "utils", "web_console"]
+
+[tool.setuptools.package-data]
+web_console = ["templates/*.html"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+

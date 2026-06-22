@@ -1,0 +1,38 @@
+# 主动消息系统配置
+
+# 全局开关
+enabled: true
+
+# 发送间隔配置
+min_interval_hours: 2
+max_daily_per_user: 3
+
+# 静默时段
+quiet_hours:
+  start: "22:00"
+  end: "08:00"
+
+# 发送时段偏好
+preferred_slots:
+  - morning
+  - noon
+  - afternoon
+  - evening
+
+# 表情包配置
+emoji:
+  enabled: true
+  send_probability: 0.25
+  emoji_dir: "emojis"
+
+# 用户分组
+groups:
+  - name: "亲密关系"
+    priority: 1
+    max_daily: 5
+  - name: "普通朋友"
+    priority: 2
+    max_daily: 2
+  - name: "工作"
+    priority: 3
+    max_daily: 1

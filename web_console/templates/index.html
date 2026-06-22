@@ -1,0 +1,2862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信 AI 机器人 - 控制台</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('webConsoleTheme') || 'light';
+            document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+        })();
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status.running {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(132, 250, 176, 0.3);
+        }
+
+        .status.stopped {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(250, 112, 154, 0.3);
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .panel {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .secret-field {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .secret-field input {
+            flex: 1;
+        }
+
+        .secret-toggle {
+            min-width: 72px;
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.9);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="password"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 400px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #868f96 0%, #596164 100%);
+        }
+
+        button.secondary:hover {
+            box-shadow: 0 4px 12px rgba(134, 143, 150, 0.4);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        button.danger:hover {
+            box-shadow: 0 4px 12px rgba(250, 112, 154, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+            align-items: start;
+        }
+
+        .health-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            background: rgba(255,255,255,0.75);
+            min-width: 0;
+        }
+
+        .health-label {
+            color: #777;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .health-value {
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .health-item-wide {
+            grid-column: span 2;
+        }
+
+        .health-item-log {
+            grid-column: 1 / -1;
+        }
+
+        .health-log-value {
+            display: grid;
+            gap: 8px;
+            max-height: 220px;
+            overflow: auto;
+            font-weight: 500;
+            line-height: 1.55;
+            padding: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.05);
+        }
+
+        .health-problem {
+            display: grid;
+            gap: 6px;
+            padding: 10px;
+            border: 1px solid rgba(245, 158, 11, 0.22);
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        .health-problem-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .health-problem-level {
+            flex: 0 0 auto;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.18);
+        }
+
+        .health-problem-meta {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--muted);
+        }
+
+        .health-problem-message {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .health-empty {
+            padding: 10px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .budget-row {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .budget-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            margin-bottom: 5px;
+            line-height: 1.35;
+        }
+
+        .budget-track {
+            height: 8px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+
+        .budget-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #667eea 0%, #39b8a8 100%);
+        }
+
+        .budget-fill.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .alert.success {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(132, 250, 176, 0.3);
+        }
+
+        .alert.error {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(250, 112, 154, 0.3);
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .bot-settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            align-items: start;
+        }
+
+        .console-header {
+            align-items: stretch;
+        }
+
+        .brand-block {
+            display: grid;
+            align-content: center;
+            gap: 4px;
+            min-width: 260px;
+        }
+
+        .brand-kicker {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .brand-subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .panel-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title h2 {
+            margin-bottom: 4px;
+        }
+
+        .panel-title p,
+        .section-title p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            margin: 24px 0 12px;
+        }
+
+        .section-title h3 {
+            margin-bottom: 4px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: minmax(320px, 0.95fr) minmax(380px, 1.35fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .form-card {
+            display: grid;
+            gap: 16px;
+        }
+
+        .form-card .form-group,
+        .compact-card .form-group,
+        .reminder-card .form-group {
+            margin-bottom: 0;
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .sidebar-column,
+        .editor-column {
+            display: grid;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .editor-column textarea {
+            min-height: 240px;
+        }
+
+        #persona-panel .split-layout {
+            min-height: clamp(620px, calc(100vh - 330px), 900px);
+        }
+
+        #persona-panel .editor-column {
+            align-self: stretch;
+            grid-template-rows: auto auto minmax(360px, 1fr) auto;
+            height: 100%;
+        }
+
+        #persona-panel .editor-column .form-group {
+            display: grid;
+            gap: 6px;
+            align-items: start;
+            grid-template-rows: auto minmax(0, 1fr);
+            margin-bottom: 0;
+            min-height: 0;
+        }
+
+        #persona-panel .editor-column .form-group label {
+            align-self: start;
+        }
+
+        #persona-panel #personaIdentity {
+            min-height: 120px;
+        }
+
+        #persona-panel #personaSetting {
+            align-self: stretch;
+            min-height: 360px;
+            height: 100%;
+            resize: vertical;
+        }
+
+        #persona-panel .editor-column .btn-group {
+            align-self: end;
+            flex-wrap: wrap;
+        }
+
+        .prompt-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1fr) minmax(280px, 0.9fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .bot-overview {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .bot-control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .bot-control-row .btn-group {
+            margin-top: 0;
+        }
+
+        .bot-essentials-grid {
+            display: grid;
+            grid-template-columns: minmax(240px, 0.75fr) minmax(280px, 1fr) minmax(320px, 1.2fr);
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .bot-advanced-grid {
+            display: grid;
+            grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr);
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .bot-settings-grid .card {
+            align-self: start;
+        }
+
+        .bot-essentials-grid > .card,
+        .bot-advanced-grid > .card {
+            height: 100%;
+        }
+
+        .compact-card .form-group:last-child,
+        .reminder-card .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        #bot-panel #reminder_keywords {
+            min-height: 180px;
+            max-height: 320px;
+            line-height: 1.55;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .prompt-preview {
+            display: grid;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .prompt-stats {
+            display: grid;
+            gap: 14px;
+        }
+
+        .budget-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .prompt-stat-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .prompt-stat {
+            padding: 7px 10px;
+            border-radius: 8px;
+            background: rgba(102, 126, 234, 0.12);
+            color: #555;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.35;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .prompt-message {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(102, 126, 234, 0.18);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .prompt-role {
+            padding: 8px 12px;
+            background: rgba(102, 126, 234, 0.14);
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .prompt-content {
+            padding: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 260px;
+            overflow: auto;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+
+
+        /* Bot 日志组件：只在组件内部滚动，避免撑开整个页面 */
+        #logs-panel {
+            height: calc(100vh - 190px);
+            min-height: 520px;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        #logs-panel.active {
+            display: flex !important;
+        }
+
+        .log-toolbar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex: 0 0 auto;
+        }
+
+        .log-toolbar select {
+            width: auto;
+            min-width: 140px;
+        }
+
+        .log-viewer {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            background: #0b1020;
+            color: #d7e1ff;
+            border-radius: 10px;
+            padding: 14px;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid rgba(255,255,255,0.15);
+            overscroll-behavior: contain;
+        }
+
+        .log-line {
+            display: grid;
+            grid-template-columns: 175px 76px minmax(180px, 280px) minmax(420px, 1fr);
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 3px 0;
+            min-width: 920px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-line.DEBUG .log-level { color: #8ab4f8; }
+        .log-line.INFO .log-level { color: #81c995; }
+        .log-line.SUCCESS .log-level { color: #57d68d; }
+        .log-line.WARNING .log-level { color: #fdd663; }
+        .log-line.ERROR .log-level,
+        .log-line.CRITICAL .log-level { color: #ff8a80; }
+
+        .log-time { color: #8ea0c9; }
+        .log-level { font-weight: 700; }
+        .log-source { color: #a9b6d3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .log-message { color: #f1f4ff; }
+        .log-muted { color: #9aa0a6; }
+
+
+        .persona-list {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .persona-item {
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-weight: 500;
+        }
+
+        .persona-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(4px);
+        }
+
+        .persona-item.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        }
+
+        .persona-name-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(102, 126, 234, 0.16);
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .inline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .restart-hint {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: rgba(254, 225, 64, 0.2);
+            color: #6d5b00;
+            font-weight: 600;
+        }
+
+        .restart-hint.show {
+            display: flex;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        h2 {
+            margin-bottom: 24px;
+            color: #555;
+            font-size: 22px;
+        }
+
+        h3 {
+            margin-bottom: 16px;
+            color: #555;
+            font-size: 18px;
+        }
+
+        /* Quiet operations-console skin */
+        :root {
+            --page-bg: #f3f6f8;
+            --panel: #ffffff;
+            --panel-rgb: 255, 255, 255;
+            --panel-soft: #f8fafc;
+            --border: #dbe3ea;
+            --border-strong: #c8d3dc;
+            --text: #17212b;
+            --muted: #657384;
+            --field-bg: #ffffff;
+            --accent: #2563eb;
+            --accent-strong: #1d4ed8;
+            --accent-soft: #e8f0ff;
+            --accent-soft-text: #1d4ed8;
+            --ok: #15956b;
+            --ok-soft: #e7f7f1;
+            --warn: #c97a11;
+            --warn-soft: #fff3e3;
+            --danger: #d64545;
+            --danger-soft: #fff0f0;
+            --track: #e8edf2;
+            --chip-bg: #eef4ff;
+            --chip-text: #2f4b76;
+            --log-bg: #101827;
+            --log-border: #1f2a3a;
+            --restart-bg: #fff8e6;
+            --restart-border: #f2d38b;
+            --shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+        }
+
+        html[data-theme="dark"] {
+            --page-bg: #10151d;
+            --panel: #161d27;
+            --panel-rgb: 22, 29, 39;
+            --panel-soft: #1d2633;
+            --border: #2a3645;
+            --border-strong: #3a4657;
+            --text: #edf3fb;
+            --muted: #a9b5c4;
+            --field-bg: #111821;
+            --accent: #5b8cff;
+            --accent-strong: #8fb0ff;
+            --accent-soft: #1f3150;
+            --accent-soft-text: #c8d8ff;
+            --ok: #55d39d;
+            --ok-soft: #123629;
+            --warn: #f2b85b;
+            --warn-soft: #3b2c16;
+            --danger: #ff7b7b;
+            --danger-soft: #3a1f24;
+            --track: #263241;
+            --chip-bg: #21314c;
+            --chip-text: #d8e5ff;
+            --log-bg: #080d14;
+            --log-border: #263342;
+            --restart-bg: #342916;
+            --restart-border: #6a5120;
+            --shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            color-scheme: dark;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.09), transparent 28rem),
+                radial-gradient(circle at 88% 8%, rgba(21, 149, 107, 0.08), transparent 30rem),
+                var(--page-bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1280px;
+            padding: 24px;
+        }
+
+        header,
+        .panel {
+            background: rgba(var(--panel-rgb), 0.92);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--text);
+            background: none;
+            -webkit-text-fill-color: currentColor;
+            font-size: 24px;
+            letter-spacing: 0;
+        }
+
+        h2 {
+            margin-bottom: 18px;
+            color: var(--text);
+            font-size: 20px;
+        }
+
+        h3,
+        .card h3 {
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .header-status {
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .header-status .btn-group {
+            margin-top: 0;
+            align-items: center;
+        }
+
+        .header-status button {
+            min-height: 42px;
+        }
+
+        .tabs {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            gap: 6px;
+            margin-bottom: 16px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(var(--panel-rgb), 0.88);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 0 0 auto;
+            padding: 9px 14px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            box-shadow: none;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .tab:hover {
+            background: var(--panel-soft);
+            border-color: var(--border);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab.active {
+            background: var(--accent-soft);
+            color: var(--accent-soft-text);
+            border-color: rgba(37, 99, 235, 0.18);
+            box-shadow: none;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .bot-settings-grid {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: none;
+            padding: 18px;
+            backdrop-filter: none;
+        }
+
+        .card:hover {
+            transform: none;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+        }
+
+        label {
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select,
+        textarea {
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            background: var(--field-bg);
+            color: var(--text);
+            padding: 10px 11px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="password"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        textarea {
+            min-height: 180px;
+        }
+
+        #llm_params {
+            min-height: 180px;
+        }
+
+        #promptMessage,
+        #reminder_keywords {
+            min-height: 120px;
+        }
+
+        button {
+            border-radius: 6px;
+            background: var(--accent);
+            box-shadow: none;
+            padding: 10px 16px;
+            font-size: 14px;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        button:hover {
+            background: var(--accent-strong);
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.secondary {
+            background: var(--field-bg);
+            color: var(--text);
+            border: 1px solid var(--border-strong);
+        }
+
+        button.secondary:hover {
+            background: var(--panel-soft);
+            border-color: #9facb8;
+            box-shadow: none;
+        }
+
+        button.danger {
+            background: var(--danger);
+        }
+
+        button.danger:hover {
+            background: #b83232;
+            box-shadow: none;
+        }
+
+        .btn-group {
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .status {
+            border-radius: 999px;
+            padding: 5px 11px;
+            font-size: 13px;
+        }
+
+        .status.running {
+            background: var(--ok-soft);
+            color: var(--ok);
+            box-shadow: none;
+        }
+
+        .status.stopped {
+            background: var(--warn-soft);
+            color: var(--warn);
+            box-shadow: none;
+        }
+
+        .health-grid {
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 10px;
+        }
+
+        .health-item,
+        .persona-item {
+            background: var(--panel-soft);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .health-label,
+        .help-text {
+            color: var(--muted);
+        }
+
+        .budget-track {
+            background: var(--track);
+        }
+
+        .budget-fill {
+            background: linear-gradient(90deg, var(--accent) 0%, var(--ok) 100%);
+        }
+
+        .prompt-stat {
+            background: var(--chip-bg);
+            color: var(--chip-text);
+        }
+
+        .prompt-message {
+            background: var(--panel);
+            border-color: var(--border);
+            border-radius: 8px;
+        }
+
+        .prompt-role {
+            background: var(--panel-soft);
+            color: var(--accent-soft-text);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .persona-item:hover {
+            background: var(--chip-bg);
+            transform: none;
+        }
+
+        .persona-item.active {
+            border-color: rgba(37, 99, 235, 0.45);
+            background: var(--accent-soft);
+        }
+
+        .badge {
+            background: var(--accent-soft);
+            color: var(--accent-soft-text);
+        }
+
+        .restart-hint {
+            border: 1px solid var(--restart-border);
+            background: var(--restart-bg);
+            color: var(--warn);
+            border-radius: 8px;
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        .alert.success {
+            background: var(--ok-soft);
+            color: var(--ok);
+            border: 1px solid rgba(21, 149, 107, 0.22);
+            box-shadow: none;
+        }
+
+        .alert.error {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid rgba(214, 69, 69, 0.22);
+            box-shadow: none;
+        }
+
+        #logs-panel {
+            height: calc(100vh - 172px);
+            min-height: 520px;
+        }
+
+        .log-viewer {
+            border-radius: 8px;
+            background: var(--log-bg);
+            border: 1px solid var(--log-border);
+        }
+
+        .theme-toggle {
+            min-width: 84px;
+            white-space: nowrap;
+        }
+
+        html[data-theme="dark"] body {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(91, 140, 255, 0.14), transparent 28rem),
+                radial-gradient(circle at 88% 8%, rgba(85, 211, 157, 0.10), transparent 30rem),
+                var(--page-bg);
+        }
+
+        html[data-theme="dark"] .card,
+        html[data-theme="dark"] .health-item,
+        html[data-theme="dark"] .persona-item {
+            background: var(--panel-soft);
+        }
+
+        html[data-theme="dark"] button.secondary:hover {
+            background: #223044;
+            border-color: #4d5b70;
+        }
+
+        html[data-theme="dark"] button.danger:hover {
+            background: #d95959;
+        }
+
+        html[data-theme="dark"] .card:hover {
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+        }
+
+        html[data-theme="dark"] .health-log-value {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        html[data-theme="dark"] .health-problem {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.28);
+        }
+
+        html[data-theme="dark"] .health-problem-head {
+            color: #fbbf24;
+        }
+
+        html[data-theme="dark"] .health-problem-level {
+            background: rgba(245, 158, 11, 0.18);
+        }
+
+        html[data-theme="dark"] select option {
+            background: var(--field-bg);
+            color: var(--text);
+        }
+
+        html[data-theme="dark"] .loading,
+        html[data-theme="dark"] .empty-state,
+        html[data-theme="dark"] .log-muted {
+            color: var(--muted);
+        }
+
+        html[data-theme="dark"] .monitor-error p {
+            color: var(--muted) !important;
+        }
+
+        html[data-theme="dark"] .monitor-error p:first-child {
+            color: var(--danger) !important;
+        }
+
+        @media (max-width: 780px) {
+            .container {
+                padding: 14px;
+            }
+
+            header {
+                display: block;
+            }
+
+            h1 {
+                margin-bottom: 12px;
+                font-size: 21px;
+            }
+
+            .header-status {
+                justify-content: flex-start;
+                gap: 10px;
+            }
+
+            .header-status .btn-group {
+                margin-top: 0;
+            }
+
+            .tabs {
+                position: static;
+                margin-bottom: 14px;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+
+            .secret-field {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+
+            .budget-head {
+                display: grid;
+                gap: 2px;
+            }
+
+            .panel-title,
+            .bot-control-row {
+                display: grid;
+            }
+
+            .config-grid,
+            .split-layout,
+            .prompt-layout,
+            .bot-essentials-grid,
+            .bot-advanced-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-bar {
+                justify-content: stretch;
+                flex-wrap: wrap;
+            }
+
+            .action-bar button {
+                flex: 1 1 160px;
+            }
+
+            .health-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .health-item-wide,
+            .health-item-log {
+                grid-column: auto;
+            }
+        }
+
+        @media (min-width: 781px) and (max-width: 1120px) {
+            .config-grid,
+            .prompt-layout,
+            .bot-essentials-grid,
+            .bot-advanced-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .prompt-layout .card:last-child,
+            .bot-essentials-grid .card:last-child {
+                grid-column: 1 / -1;
+            }
+
+            .health-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .health-item-wide,
+            .health-item-log {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="console-header">
+            <div class="brand-block">
+                <div class="brand-kicker">Local Web Console</div>
+                <h1>微信 AI 机器人控制台</h1>
+                <div class="brand-subtitle">配置、调试、运行状态和日志集中管理</div>
+            </div>
+            <div class="header-status">
+                <div class="status" id="botStatus">
+                    <span id="statusText">检查中...</span>
+                </div>
+                <button class="secondary theme-toggle" id="themeToggle" type="button" onclick="toggleTheme()">深色</button>
+                <div class="btn-group">
+                    <button onclick="startBot()">启动 Bot</button>
+                    <button class="secondary" onclick="stopBot()">停止 Bot</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('llm')">LLM 配置</button>
+            <button class="tab" onclick="switchTab('persona')">角色人设</button>
+            <button class="tab" onclick="switchTab('prompt')">Prompt 预览</button>
+            <button class="tab" onclick="switchTab('bot')">机器人设置</button>
+            <button class="tab" onclick="switchTab('logs')">Bot 日志</button>
+            <button class="tab" onclick="switchTab('monitor')">消息监听</button>
+        </div>
+
+        <div id="alert" class="alert"></div>
+        <div id="restartHint" class="restart-hint">
+            <span>配置已保存。Bot 正在运行时，需要重启 Bot 后生效。</span>
+            <button class="secondary" onclick="restartBot()">立即重启 Bot</button>
+        </div>
+
+        <!-- LLM 配置面板 -->
+        <div id="llm-panel" class="panel active">
+            <div class="panel-title">
+                <div>
+                    <h2>LLM 配置</h2>
+                    <p>连接本地或云端 OpenAI-compatible 服务，并调整默认生成参数。</p>
+                </div>
+            </div>
+
+            <div class="config-grid">
+                <div class="card form-card">
+                    <h3>连接信息</h3>
+                    <div class="form-group">
+                        <label for="llm_base_url">Base URL</label>
+                        <input type="text" id="llm_base_url" placeholder="http://localhost:1234/v1">
+                        <div class="help-text">OpenAI-compatible API 地址，如 LM Studio、Ollama、vLLM、DeepSeek、OpenAI 等</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="llm_api_key">API Key</label>
+                        <div class="secret-field">
+                            <input type="password" id="llm_api_key" placeholder="本地服务可留空" autocomplete="off">
+                            <button class="secondary secret-toggle" type="button" onclick="toggleSecret('llm_api_key', this)">显示</button>
+                        </div>
+                    </div>
+
+                    <div class="inline-grid">
+                        <div class="form-group">
+                            <label for="llm_model">模型名称</label>
+                            <input type="text" id="llm_model" placeholder="手动填写模型名">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="llm_timeout">超时秒数</label>
+                            <input type="number" id="llm_timeout" min="1" placeholder="60">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card form-card">
+                    <h3>默认参数</h3>
+                    <div class="form-group">
+                        <label for="llm_params">默认参数 JSON</label>
+                        <textarea id="llm_params" rows="8" placeholder='{"temperature": 0.78, "top_p": 0.93}'></textarea>
+                        <div class="help-text">会透传到 /chat/completions，单次调用参数会覆盖这里的同名参数</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button onclick="testConnection()">测试连接</button>
+                <button onclick="saveConfig()">保存配置</button>
+            </div>
+        </div>
+
+        <!-- 角色人设面板 -->
+        <div id="persona-panel" class="panel">
+            <div class="panel-title">
+                <div>
+                    <h2>角色人设管理</h2>
+                    <p>维护角色目录、身份摘要和完整设定。</p>
+                </div>
+            </div>
+
+            <div class="split-layout">
+                <div class="sidebar-column">
+                    <h3>角色列表</h3>
+                    <div id="personaList" class="persona-list">
+                        <div class="loading">加载中...</div>
+                    </div>
+                    <div class="card">
+                        <h3>新增角色</h3>
+                        <div class="form-group">
+                            <label for="newPersonaName">目录名</label>
+                            <input type="text" id="newPersonaName" placeholder="例如：assistant_cn">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPersonaIdentity">身份摘要</label>
+                            <textarea id="newPersonaIdentity" placeholder="一句话身份摘要" style="min-height: 90px;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPersonaSetting">角色设定</label>
+                            <textarea id="newPersonaSetting" placeholder="完整角色设定" style="min-height: 160px;"></textarea>
+                        </div>
+                        <button onclick="createPersona()">创建角色</button>
+                    </div>
+                </div>
+
+                <div class="editor-column">
+                    <h3 id="personaTitle">选择一个角色</h3>
+                    <div class="form-group">
+                        <label for="personaIdentity">身份摘要 identity.txt</label>
+                        <textarea id="personaIdentity" placeholder="请先选择一个角色" style="min-height: 120px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="personaSetting">persona.md</label>
+                        <textarea id="personaSetting" placeholder="请先选择一个角色"></textarea>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="savePersona()" id="savePersonaBtn" disabled>保存人设</button>
+                        <button onclick="activatePersona()" id="activatePersonaBtn" disabled>设为默认</button>
+                        <button class="secondary" onclick="copyPersona()" id="copyPersonaBtn" disabled>复制角色</button>
+                        <button class="danger" onclick="deletePersona()" id="deletePersonaBtn" disabled>删除角色</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prompt 预览面板 -->
+        <div id="prompt-panel" class="panel">
+            <div class="panel-title">
+                <div>
+                    <h2>Prompt 预览</h2>
+                    <p>用真实配置生成 Prompt 结构，查看预算占用和最终上下文。</p>
+                </div>
+            </div>
+
+            <div class="prompt-layout">
+                <div class="card form-card">
+                    <h3>Prompt 设置</h3>
+                    <div class="inline-grid">
+                        <div class="form-group">
+                            <label for="prompt_max_total_chars">总字符上限</label>
+                            <input type="number" id="prompt_max_total_chars" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="prompt_max_history_chars">历史字符上限</label>
+                            <input type="number" id="prompt_max_history_chars" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="prompt_max_persona_chars">人设字符上限</label>
+                            <input type="number" id="prompt_max_persona_chars" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="prompt_max_schedule_chars">日程字符上限</label>
+                            <input type="number" id="prompt_max_schedule_chars" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="prompt_recent_history_count">近期历史条数</label>
+                            <input type="number" id="prompt_recent_history_count" min="0">
+                        </div>
+                    </div>
+                    <button onclick="savePromptConfig()">保存 Prompt 设置</button>
+                </div>
+                <div class="card form-card">
+                    <h3>预览输入</h3>
+                    <div class="form-group">
+                        <label for="promptPersona">角色</label>
+                        <select id="promptPersona"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="promptSessionName">会话名</label>
+                        <input type="text" id="promptSessionName" placeholder="例如：你滴盐我滴醋" value="preview_session">
+                    </div>
+                    <div class="form-group">
+                        <label for="promptMessage">测试消息</label>
+                        <textarea id="promptMessage" placeholder="输入一条测试消息">测试消息</textarea>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="previewPrompt()">生成预览</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>统计</h3>
+                    <div id="promptStats" class="prompt-stats">尚未生成</div>
+                </div>
+            </div>
+            <div id="promptPreview" class="prompt-preview"></div>
+        </div>
+
+        <!-- 机器人设置面板 -->
+        <div id="bot-panel" class="panel">
+            <div class="panel-title">
+                <div>
+                    <h2>机器人行为设置</h2>
+                    <p>按运行状态、基础行为和扩展能力管理机器人配置。</p>
+                </div>
+            </div>
+
+            <div class="card bot-overview">
+                <div class="bot-control-row">
+                    <div>
+                        <h3>Bot 进程</h3>
+                    </div>
+                    <div class="status" id="botPanelStatus">
+                        <span id="botPanelStatusText">检查中...</span>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="startBot()">启动 Bot</button>
+                        <button class="secondary" onclick="stopBot()">停止 Bot</button>
+                    </div>
+                </div>
+                <div id="healthPanel" class="health-grid"></div>
+            </div>
+
+            <div class="section-title">
+                <h3>基础行为</h3>
+                <p>控制微信消息处理和回复节奏。</p>
+            </div>
+
+            <div class="bot-essentials-grid">
+                <div class="card compact-card">
+                    <h3>微信行为</h3>
+                    <div class="form-group">
+                        <label for="wechat_ignore_group_chat">
+                            <input type="checkbox" id="wechat_ignore_group_chat"> 忽略群聊
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="wechat_echo_filter_enabled">
+                            <input type="checkbox" id="wechat_echo_filter_enabled"> 过滤自己发出的消息
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>回复行为</h3>
+                    <div class="form-group">
+                        <label for="bot_reply_delay">回复延迟秒数</label>
+                        <input type="number" id="bot_reply_delay" min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="bot_max_total_chars">单次上下文最大字符数</label>
+                        <input type="number" id="bot_max_total_chars" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="bot_max_history_per_session">每会话历史条数</label>
+                        <input type="number" id="bot_max_history_per_session" min="0">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>记忆系统</h3>
+                    <div class="form-group">
+                        <label for="max_memory_chars">用户记忆最大字符数</label>
+                        <input type="number" id="max_memory_chars" value="1200">
+                    </div>
+                    <div class="form-group">
+                        <label for="summary_interval">摘要触发轮数</label>
+                        <input type="number" id="summary_interval" value="15">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_semantic_items">语义记忆条数</label>
+                        <input type="number" id="max_semantic_items" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="use_bm25">
+                            <input type="checkbox" id="use_bm25"> 使用 BM25 检索
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="use_compression">
+                            <input type="checkbox" id="use_compression"> 使用记忆压缩
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h3>扩展能力</h3>
+                <p>联网检索和定时提醒相关配置。</p>
+            </div>
+
+            <div class="bot-advanced-grid">
+                <div class="card">
+                    <h3>联网搜索</h3>
+                    <div class="form-group">
+                        <label for="search_enabled">
+                            <input type="checkbox" id="search_enabled"> 启用联网搜索
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="tavily_api_key">Tavily API Key</label>
+                        <div class="secret-field">
+                            <input type="password" id="tavily_api_key" placeholder="tvly-..." autocomplete="off">
+                            <button class="secondary secret-toggle" type="button" onclick="toggleSecret('tavily_api_key', this)">显示</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="search_max_results">搜索结果数</label>
+                        <input type="number" id="search_max_results" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_priority">搜索优先级</label>
+                        <input type="text" id="search_priority" placeholder="tavily,mcp">
+                    </div>
+                    <div class="form-group">
+                        <label for="tavily_max_results">Tavily 结果数</label>
+                        <input type="number" id="tavily_max_results" min="1">
+                    </div>
+                </div>
+
+                <div class="card reminder-card">
+                    <h3>提醒功能</h3>
+                    <div class="form-group">
+                        <label for="reminder_enabled">
+                            <input type="checkbox" id="reminder_enabled"> 启用定时提醒
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminder_keywords">提醒关键词</label>
+                        <textarea id="reminder_keywords" placeholder="每行一个关键词"></textarea>
+                    </div>
+                    <div class="inline-grid">
+                        <div class="form-group">
+                            <label for="reminder_quiet_start">免打扰开始</label>
+                            <input type="text" id="reminder_quiet_start" placeholder="23:00">
+                        </div>
+                        <div class="form-group">
+                            <label for="reminder_quiet_end">免打扰结束</label>
+                            <input type="text" id="reminder_quiet_end" placeholder="08:00">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button onclick="saveBotConfig()">保存设置</button>
+            </div>
+        </div>
+
+
+
+        <!-- Bot 日志面板 -->
+        <div id="logs-panel" class="panel">
+            <h2>Bot 实时日志</h2>
+            <div class="log-toolbar">
+                <label for="logLevel" style="margin-bottom:0;">显示等级</label>
+                <select id="logLevel" onchange="changeLogLevel()">
+                    <option value="TRACE">TRACE+</option>
+                    <option value="DEBUG">DEBUG+</option>
+                    <option value="INFO" selected>INFO+</option>
+                    <option value="WARNING">WARNING+</option>
+                    <option value="ERROR">ERROR+</option>
+                </select>
+                <button onclick="refreshBotLogs(true)">刷新</button>
+                <button class="secondary" onclick="clearBotLogs()">清空日志</button>
+                <label style="margin-bottom:0;"><input type="checkbox" id="logAutoScroll" checked> 自动滚动</label>
+                <span id="logStatus" class="log-muted">等待加载</span>
+            </div>
+            <div id="botLogViewer" class="log-viewer">
+                <div class="log-muted">暂无日志</div>
+            </div>
+        </div>
+
+        <!-- 消息监听面板 -->
+        <div id="monitor-panel" class="panel">
+            <h2>微信消息监听</h2>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>监听器状态</h3>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="status" id="monitorStatus">
+                        <span id="monitorStatusText">检查中...</span>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="startMonitor()">启动监听</button>
+                        <button class="secondary" onclick="stopMonitor()">停止监听</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.95); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <iframe
+                    id="monitorFrame"
+                    src="http://localhost:5678"
+                    style="width: 100%; height: 600px; border: none;"
+                    onload="handleMonitorFrameLoad()"
+                    onerror="handleMonitorFrameError()">
+                </iframe>
+            </div>
+
+            <div id="monitorError" style="display: none; padding: 20px; background: rgba(250, 112, 154, 0.1); border-radius: 10px; margin-top: 20px;">
+                <p style="color: #fa709a; font-weight: 500;">⚠️ 监听器服务未启动</p>
+                <p style="color: #666; margin-top: 8px;">请先启动监听器服务：</p>
+                <pre style="background: rgba(0,0,0,0.05); padding: 12px; border-radius: 6px; margin-top: 8px;">python wechat-decrypt/main.py</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = {};
+        let currentPersona = null;
+        let currentPersonas = [];
+        let lastBotRunning = false;
+
+        // 切换标签页
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tab + '-panel').classList.add('active');
+
+            if (tab === 'persona') {
+                loadPersonas();
+            }
+            if (tab === 'prompt') {
+                loadPersonas();
+            }
+            if (tab === 'logs') {
+                refreshBotLogs(true);
+            }
+        }
+
+        // 显示提示
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => alert.classList.remove('show'), 3000);
+        }
+
+        function escapeHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function toNumber(id, fallback = 0) {
+            const value = Number(document.getElementById(id).value);
+            return Number.isFinite(value) ? value : fallback;
+        }
+
+        function showRestartHint() {
+            if (lastBotRunning) {
+                document.getElementById('restartHint').classList.add('show');
+            }
+        }
+
+        function hideRestartHint() {
+            document.getElementById('restartHint').classList.remove('show');
+        }
+
+        function toggleSecret(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const visible = input.type === 'text';
+            input.type = visible ? 'password' : 'text';
+            button.textContent = visible ? '显示' : '隐藏';
+        }
+
+        // 加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentConfig = data.config;
+                    updateFormFromConfig();
+                }
+            } catch (error) {
+                showAlert('加载配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 更新表单
+        function updateFormFromConfig() {
+            const llm = currentConfig.llm || {};
+            document.getElementById('llm_base_url').value = llm.base_url || '';
+            const llmApiKeyInput = document.getElementById('llm_api_key');
+            llmApiKeyInput.value = llm.api_key || '';
+            llmApiKeyInput.placeholder = '本地服务可留空';
+            document.getElementById('llm_model').value = llm.model || '';
+            document.getElementById('llm_timeout').value = llm.timeout || 60;
+            document.getElementById('llm_params').value = JSON.stringify(llm.params || {}, null, 2);
+
+            const prompt = currentConfig.prompt || {};
+            document.getElementById('prompt_max_total_chars').value = prompt.max_total_chars ?? 12000;
+            document.getElementById('prompt_max_history_chars').value = prompt.max_history_chars ?? 6000;
+            document.getElementById('prompt_max_persona_chars').value = prompt.max_persona_chars ?? 4000;
+            document.getElementById('prompt_max_schedule_chars').value = prompt.max_schedule_chars ?? 2000;
+            document.getElementById('prompt_recent_history_count').value = prompt.recent_history_count ?? 20;
+
+            const bot = currentConfig.bot || {};
+            document.getElementById('bot_reply_delay').value = bot.reply_delay ?? 0;
+            document.getElementById('bot_max_total_chars').value = bot.max_total_chars ?? 12000;
+            document.getElementById('bot_max_history_per_session').value = bot.max_history_per_session ?? 20;
+            document.getElementById('max_memory_chars').value = bot.max_memory_chars ?? 1200;
+            document.getElementById('summary_interval').value = bot.summary_interval ?? 15;
+            document.getElementById('max_semantic_items').value = bot.max_semantic_items ?? 6;
+            document.getElementById('use_bm25').checked = bot.use_bm25 ?? false;
+            document.getElementById('use_compression').checked = bot.use_compression ?? false;
+
+            const wechat = currentConfig.wechat || {};
+            const echoFilter = wechat.outgoing_echo_filter || {};
+            document.getElementById('wechat_ignore_group_chat').checked = wechat.ignore_group_chat ?? false;
+            document.getElementById('wechat_echo_filter_enabled').checked = echoFilter.enabled ?? true;
+
+            const search = currentConfig.search || {};
+            const tavily = search.tavily || {};
+            document.getElementById('search_enabled').checked = search.enabled ?? false;
+            document.getElementById('search_max_results').value = search.max_results ?? 5;
+            document.getElementById('search_priority').value = Array.isArray(search.priority) ? search.priority.join(',') : (search.priority || '');
+            const tavilyApiKeyInput = document.getElementById('tavily_api_key');
+            tavilyApiKeyInput.value = tavily.api_key || '';
+            tavilyApiKeyInput.placeholder = 'tvly-...';
+            document.getElementById('tavily_max_results').value = tavily.max_results ?? 5;
+
+            const reminder = currentConfig.reminder || {};
+            const quietHours = reminder.quiet_hours || {};
+            document.getElementById('reminder_enabled').checked = reminder.enabled ?? false;
+            document.getElementById('reminder_keywords').value = Array.isArray(reminder.keywords) ? reminder.keywords.join('\n') : (reminder.keywords || '');
+            document.getElementById('reminder_quiet_start').value = quietHours.start || '';
+            document.getElementById('reminder_quiet_end').value = quietHours.end || '';
+
+        }
+
+        function readLlmConfigFromForm() {
+            let params = {};
+            const rawParams = document.getElementById('llm_params').value.trim();
+            if (rawParams) {
+                params = JSON.parse(rawParams);
+            }
+            const llmConfig = {
+                base_url: document.getElementById('llm_base_url').value.trim(),
+                model: document.getElementById('llm_model').value.trim(),
+                timeout: Number(document.getElementById('llm_timeout').value || 60),
+                params
+            };
+            const apiKey = document.getElementById('llm_api_key').value.trim();
+            if (apiKey) {
+                llmConfig.api_key = apiKey;
+            }
+            return llmConfig;
+        }
+
+        function readLlmConfigForTest() {
+            const config = readLlmConfigFromForm();
+            if (!config.api_key && currentConfig.llm && currentConfig.llm.api_key) {
+                config.api_key = currentConfig.llm.api_key;
+            }
+            return config;
+        }
+
+        // 测试连接
+        async function testConnection() {
+            try {
+                const config = readLlmConfigForTest();
+                const response = await fetch('/api/test_connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('连接测试成功！', 'success');
+                } else {
+                    showAlert('连接测试失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('连接测试失败: ' + error.message, 'error');
+            }
+        }
+
+        // 保存配置
+        async function saveConfig() {
+            try {
+                const configUpdate = { llm: readLlmConfigFromForm() };
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configUpdate)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('配置已保存，需要重启机器人生效', 'success');
+                    currentConfig = data.config || currentConfig;
+                    showRestartHint();
+                    loadConfig();
+                } else {
+                    showAlert('保存失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        // 保存机器人配置
+        async function saveBotConfig() {
+            const searchPriority = document.getElementById('search_priority').value
+                .split(',')
+                .map(item => item.trim())
+                .filter(Boolean);
+            const reminderKeywords = document.getElementById('reminder_keywords').value
+                .split('\n')
+                .map(item => item.trim())
+                .filter(Boolean);
+            const tavilyUpdate = {
+                max_results: toNumber('tavily_max_results', 5)
+            };
+            const tavilyApiKey = document.getElementById('tavily_api_key').value.trim();
+            if (tavilyApiKey) {
+                tavilyUpdate.api_key = tavilyApiKey;
+            }
+
+            const configUpdate = {
+                bot: {
+                    reply_delay: toNumber('bot_reply_delay', 0),
+                    max_total_chars: toNumber('bot_max_total_chars', 12000),
+                    max_history_per_session: toNumber('bot_max_history_per_session', 20),
+                    max_memory_chars: toNumber('max_memory_chars', 1200),
+                    summary_interval: toNumber('summary_interval', 15),
+                    max_semantic_items: toNumber('max_semantic_items', 6),
+                    use_bm25: document.getElementById('use_bm25').checked,
+                    use_compression: document.getElementById('use_compression').checked
+                },
+                wechat: {
+                    ignore_group_chat: document.getElementById('wechat_ignore_group_chat').checked,
+                    outgoing_echo_filter: {
+                        enabled: document.getElementById('wechat_echo_filter_enabled').checked
+                    }
+                },
+                search: {
+                    enabled: document.getElementById('search_enabled').checked,
+                    max_results: toNumber('search_max_results', 5),
+                    priority: searchPriority,
+                    tavily: tavilyUpdate
+                },
+                reminder: {
+                    enabled: document.getElementById('reminder_enabled').checked,
+                    keywords: reminderKeywords,
+                    quiet_hours: {
+                        start: document.getElementById('reminder_quiet_start').value.trim(),
+                        end: document.getElementById('reminder_quiet_end').value.trim()
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configUpdate)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    currentConfig = data.config || currentConfig;
+                    updateFormFromConfig();
+                    showAlert('配置已保存，需要重启 Bot 生效', 'success');
+                    showRestartHint();
+                } else {
+                    showAlert('保存失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        async function savePromptConfig() {
+            const configUpdate = {
+                prompt: {
+                    max_total_chars: toNumber('prompt_max_total_chars', 12000),
+                    max_history_chars: toNumber('prompt_max_history_chars', 6000),
+                    max_persona_chars: toNumber('prompt_max_persona_chars', 4000),
+                    max_schedule_chars: toNumber('prompt_max_schedule_chars', 2000),
+                    recent_history_count: toNumber('prompt_recent_history_count', 20)
+                }
+            };
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configUpdate)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    currentConfig = data.config || currentConfig;
+                    updateFormFromConfig();
+                    showAlert('Prompt 设置已保存，需要重启 Bot 生效', 'success');
+                    showRestartHint();
+                    previewPrompt();
+                } else {
+                    showAlert('保存失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载角色列表
+        async function loadPersonas() {
+            try {
+                const response = await fetch('/api/personas');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentPersonas = data.personas || [];
+                    const list = document.getElementById('personaList');
+                    list.innerHTML = '';
+
+                    if (!currentPersonas.length) {
+                        list.innerHTML = '<div class="loading">暂无角色，请先新增</div>';
+                    }
+
+                    currentPersonas.forEach(persona => {
+                        const item = document.createElement('div');
+                        item.className = 'persona-item';
+                        item.dataset.name = persona.name;
+                        item.innerHTML = `
+                            <div class="persona-name-row">
+                                <span>${escapeHtml(persona.name)}</span>
+                                ${persona.active ? '<span class="badge">默认</span>' : ''}
+                            </div>
+                            <div class="help-text">${escapeHtml(persona.identity || '')}</div>
+                        `;
+                        item.onclick = () => selectPersona(persona.name);
+                        list.appendChild(item);
+                    });
+
+                    populatePromptPersonas(currentPersonas);
+                    if (!currentPersona && currentPersonas.length) {
+                        const active = currentPersonas.find(item => item.active) || currentPersonas[0];
+                        selectPersona(active.name);
+                    }
+                }
+            } catch (error) {
+                showAlert('加载角色列表失败: ' + error.message, 'error');
+            }
+        }
+
+        // 选择角色
+        async function selectPersona(name) {
+            try {
+                const response = await fetch(`/api/persona/${encodeURIComponent(name)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentPersona = name;
+                    document.getElementById('personaTitle').textContent = `角色: ${name}${data.active ? '（默认）' : ''}`;
+                    document.getElementById('personaIdentity').value = data.identity || '';
+                    document.getElementById('personaSetting').value = data.setting || '';
+                    ['savePersonaBtn', 'activatePersonaBtn', 'copyPersonaBtn', 'deletePersonaBtn'].forEach(id => {
+                        document.getElementById(id).disabled = false;
+                    });
+
+                    document.querySelectorAll('.persona-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.name === name);
+                    });
+                } else {
+                    showAlert('加载角色失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('加载角色设定失败: ' + error.message, 'error');
+            }
+        }
+
+        // 保存角色设定
+        async function savePersona() {
+            if (!currentPersona) return;
+
+            const identity = document.getElementById('personaIdentity').value;
+            const setting = document.getElementById('personaSetting').value;
+
+            try {
+                const response = await fetch(`/api/persona/${encodeURIComponent(currentPersona)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identity, setting })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('角色已保存，Bot 运行中需重启生效', 'success');
+                    showRestartHint();
+                    loadPersonas();
+                } else {
+                    showAlert('保存失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        async function createPersona() {
+            const name = document.getElementById('newPersonaName').value.trim();
+            const identity = document.getElementById('newPersonaIdentity').value;
+            const setting = document.getElementById('newPersonaSetting').value;
+            if (!name) {
+                showAlert('请输入角色目录名', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/personas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, identity, setting })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('角色已创建', 'success');
+                    document.getElementById('newPersonaName').value = '';
+                    document.getElementById('newPersonaIdentity').value = '';
+                    document.getElementById('newPersonaSetting').value = '';
+                    currentPersona = data.name;
+                    await loadConfig();
+                    await loadPersonas();
+                    await selectPersona(data.name);
+                    showRestartHint();
+                } else {
+                    showAlert('创建失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('创建失败: ' + error.message, 'error');
+            }
+        }
+
+        async function activatePersona() {
+            if (!currentPersona) return;
+            try {
+                const response = await fetch(`/api/persona/${encodeURIComponent(currentPersona)}/activate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('默认角色已更新，Bot 运行中需重启生效', 'success');
+                    await loadConfig();
+                    await loadPersonas();
+                    await selectPersona(currentPersona);
+                    showRestartHint();
+                } else {
+                    showAlert('设置失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('设置失败: ' + error.message, 'error');
+            }
+        }
+
+        async function copyPersona() {
+            if (!currentPersona) return;
+            const targetName = prompt('复制为新的角色目录名：', `${currentPersona}_copy`);
+            if (!targetName) return;
+            try {
+                const response = await fetch(`/api/persona/${encodeURIComponent(currentPersona)}/copy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: targetName.trim() })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('角色已复制', 'success');
+                    currentPersona = data.name;
+                    await loadPersonas();
+                    await selectPersona(data.name);
+                    showRestartHint();
+                } else {
+                    showAlert('复制失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('复制失败: ' + error.message, 'error');
+            }
+        }
+
+        async function deletePersona() {
+            if (!currentPersona) return;
+            if (!confirm(`确定删除角色「${currentPersona}」吗？此操作不可恢复。`)) return;
+            try {
+                const response = await fetch(`/api/persona/${encodeURIComponent(currentPersona)}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('角色已删除，Bot 运行中需重启生效', 'success');
+                    currentPersona = null;
+                    document.getElementById('personaTitle').textContent = '选择一个角色';
+                    document.getElementById('personaIdentity').value = '';
+                    document.getElementById('personaSetting').value = '';
+                    ['savePersonaBtn', 'activatePersonaBtn', 'copyPersonaBtn', 'deletePersonaBtn'].forEach(id => {
+                        document.getElementById(id).disabled = true;
+                    });
+                    await loadConfig();
+                    await loadPersonas();
+                    showRestartHint();
+                } else {
+                    showAlert('删除失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('删除失败: ' + error.message, 'error');
+            }
+        }
+
+
+        function populatePromptPersonas(personas) {
+            const select = document.getElementById('promptPersona');
+            if (!select || !Array.isArray(personas)) return;
+
+            const currentValue = select.value;
+            const activePersona = currentConfig?.persona?.active || currentValue;
+            select.innerHTML = '';
+
+            personas.forEach(persona => {
+                const option = document.createElement('option');
+                option.value = persona.name;
+                option.textContent = persona.name;
+                select.appendChild(option);
+            });
+
+            if (activePersona && [...select.options].some(option => option.value === activePersona)) {
+                select.value = activePersona;
+            } else if (currentValue && [...select.options].some(option => option.value === currentValue)) {
+                select.value = currentValue;
+            } else if (select.options.length > 0) {
+                select.selectedIndex = 0;
+            }
+        }
+
+        async function previewPrompt() {
+            const message = document.getElementById('promptMessage').value.trim();
+            const sessionName = document.getElementById('promptSessionName').value.trim() || 'preview_session';
+            const persona = document.getElementById('promptPersona').value;
+
+            if (!message) {
+                showAlert('请输入测试消息', 'error');
+                return;
+            }
+
+            const statsEl = document.getElementById('promptStats');
+            const previewEl = document.getElementById('promptPreview');
+            statsEl.textContent = '正在生成...';
+            previewEl.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/prompt/preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        session_name: sessionName,
+                        persona
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    renderPromptPreview(data.messages || [], data.stats || {});
+                } else {
+                    statsEl.textContent = '生成失败';
+                    showAlert('生成 Prompt 预览失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                statsEl.textContent = '生成失败';
+                showAlert('生成 Prompt 预览失败: ' + error.message, 'error');
+            }
+        }
+
+        function renderPromptPreview(messages, stats) {
+            const statsEl = document.getElementById('promptStats');
+            const previewEl = document.getElementById('promptPreview');
+            const systemChars = messages
+                .filter(message => message.role === 'system')
+                .reduce((sum, message) => sum + String(message.content || '').length, 0);
+            const userChars = messages
+                .filter(message => message.role === 'user')
+                .reduce((sum, message) => sum + String(message.content || '').length, 0);
+            const historyMessages = messages.filter((message, index) =>
+                index < messages.length - 1 && message.role !== 'system'
+            );
+            const historyChars = historyMessages.reduce(
+                (sum, message) => sum + String(message.content || '').length,
+                0
+            );
+
+            const budgetRows = (stats.budget || []).map(item => {
+                const used = Number(item.used || 0);
+                const limit = item.limit === null || item.limit === undefined ? null : Number(item.limit || 0);
+                const percent = limit && limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+                const isWarning = Boolean(item.trimmed) || percent >= 85;
+                const valueText = limit ? `${used} / ${limit}` : `${used}`;
+                return `
+                    <div class="budget-row">
+                        <div class="budget-head">
+                            <span>${escapeHtml(item.label || '-')}</span>
+                            <span>${escapeHtml(valueText)}${item.trimmed ? '，已裁剪' : ''}</span>
+                        </div>
+                        <div class="budget-track">
+                            <div class="budget-fill ${isWarning ? 'warning' : ''}" style="width: ${limit ? percent : 100}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const statItems = [
+                ['角色', stats.persona || '-'],
+                ['角色存在', stats.persona_exists ? '是' : '否'],
+                ['Messages', messages.length],
+                ['总字符', stats.total_chars ?? 0],
+                ['System 字符', stats.system_chars ?? systemChars],
+                ['User 字符', stats.user_chars ?? userChars],
+                ['历史字符', stats.history_chars ?? historyChars],
+                ['历史条数', stats.history_count ?? historyMessages.length],
+                ['是否裁剪', stats.trimmed ? '是' : '否']
+            ];
+
+            const chips = statItems.map(([label, value]) =>
+                `<span class="prompt-stat">${escapeHtml(label)}：${escapeHtml(value)}</span>`
+            ).join('');
+            statsEl.innerHTML = `
+                <div class="budget-list">${budgetRows}</div>
+                <div class="prompt-stat-list">${chips}</div>
+            `;
+
+            if (!messages.length) {
+                previewEl.innerHTML = '<div class="prompt-message"><div class="prompt-content">没有可展示的消息</div></div>';
+                return;
+            }
+
+            previewEl.innerHTML = messages.map((message, index) => `
+                <div class="prompt-message">
+                    <div class="prompt-role">#${index + 1} ${escapeHtml(message.role || 'unknown')}</div>
+                    <div class="prompt-content">${escapeHtml(message.content || '')}</div>
+                </div>
+            `).join('');
+        }
+
+
+
+        let botLogOffset = 0;
+        let botLogLevel = 'INFO';
+        const LOG_LEVEL_VALUE = { TRACE: 5, DEBUG: 10, INFO: 20, SUCCESS: 25, WARNING: 30, ERROR: 40, CRITICAL: 50 };
+
+        function renderLogEntry(entry) {
+            const level = entry.level || 'INFO';
+            return `
+                <div class="log-line ${escapeHtml(level)}" data-level="${escapeHtml(level)}">
+                    <span class="log-time">${escapeHtml(entry.time || '')}</span>
+                    <span class="log-level">${escapeHtml(level)}</span>
+                    <span class="log-source" title="${escapeHtml(entry.source || '')}">${escapeHtml(entry.source || '')}</span>
+                    <span class="log-message">${escapeHtml(entry.message || entry.raw || '')}</span>
+                </div>
+            `;
+        }
+
+        function applyLogFilter() {
+            const minValue = LOG_LEVEL_VALUE[botLogLevel] || 20;
+            document.querySelectorAll('#botLogViewer .log-line').forEach(line => {
+                const value = LOG_LEVEL_VALUE[line.dataset.level] || 20;
+                line.style.display = value >= minValue ? 'grid' : 'none';
+            });
+        }
+
+        function changeLogLevel() {
+            botLogLevel = document.getElementById('logLevel').value;
+            applyLogFilter();
+            refreshBotLogs(false);
+        }
+
+        async function refreshBotLogs(reset = false) {
+            const viewer = document.getElementById('botLogViewer');
+            const status = document.getElementById('logStatus');
+            if (!viewer || !status) return;
+            if (reset) {
+                botLogOffset = 0;
+                viewer.innerHTML = '<div class="log-muted">加载中...</div>';
+            }
+            try {
+                const response = await fetch(`/api/logs/bot?offset=${botLogOffset}&level=TRACE&limit=500`);
+                const data = await response.json();
+                if (!data.success) {
+                    status.textContent = '读取失败: ' + data.message;
+                    return;
+                }
+                botLogOffset = data.offset || 0;
+                if (!data.exists) {
+                    viewer.innerHTML = '<div class="log-muted">日志文件尚未生成，重启 bot 后会开始写入。</div>';
+                    status.textContent = '无日志文件';
+                    return;
+                }
+                if (reset) viewer.innerHTML = '';
+                if (data.entries && data.entries.length) {
+                    const wasEmpty = viewer.querySelector('.log-muted') && viewer.children.length === 1;
+                    if (wasEmpty) viewer.innerHTML = '';
+                    viewer.insertAdjacentHTML('beforeend', data.entries.map(renderLogEntry).join(''));
+                    const maxLines = 1000;
+                    while (viewer.children.length > maxLines) viewer.removeChild(viewer.firstElementChild);
+                    applyLogFilter();
+                    if (document.getElementById('logAutoScroll').checked) {
+                        viewer.scrollTop = viewer.scrollHeight;
+                    }
+                } else if (reset) {
+                    viewer.innerHTML = '<div class="log-muted">暂无符合条件的日志</div>';
+                }
+                status.textContent = `大小 ${data.size || 0} bytes，offset ${botLogOffset}`;
+            } catch (error) {
+                status.textContent = '读取失败: ' + error.message;
+            }
+        }
+
+        async function clearBotLogs() {
+            if (!confirm('确定清空当前 bot 日志吗？')) return;
+            try {
+                const response = await fetch('/api/logs/bot/clear', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    botLogOffset = 0;
+                    document.getElementById('botLogViewer').innerHTML = '<div class="log-muted">日志已清空</div>';
+                    document.getElementById('logStatus').textContent = '已清空';
+                } else {
+                    showAlert('清空失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('清空失败: ' + error.message, 'error');
+            }
+        }
+
+
+        // 检查状态
+        function renderHealthPanel(health) {
+            const panel = document.getElementById('healthPanel');
+            if (!panel) return;
+            if (!health) {
+                panel.innerHTML = '';
+                return;
+            }
+
+            const llm = health.llm || {};
+            const persona = health.persona || {};
+            const process = health.process || {};
+            const logs = health.logs || {};
+            const recentProblems = logs.recent_problems || [];
+            const problemSummary = logs.exists
+                ? (recentProblems.length ? `${recentProblems.length} 条 WARNING+` : '无 WARNING+ 日志')
+                : '日志未生成';
+            const renderProblemList = () => {
+                if (!recentProblems.length) {
+                    return '<div class="health-empty">暂无 WARNING+ 异常记录</div>';
+                }
+                return recentProblems.map(item => {
+                    const level = item.level || 'WARN';
+                    const source = item.source || '未知来源';
+                    const time = item.time || '无时间';
+                    const message = item.message || item.raw || '';
+                    return `
+                        <div class="health-problem">
+                            <div class="health-problem-head">
+                                <span class="health-problem-level">${escapeHtml(level)}</span>
+                                <span class="health-problem-meta" title="${escapeHtml(`${time} · ${source}`)}">${escapeHtml(time)} · ${escapeHtml(source)}</span>
+                            </div>
+                            <div class="health-problem-message">${escapeHtml(message)}</div>
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            const items = [
+                { label: '模型', value: llm.model || '未配置' },
+                { label: 'Base URL', value: llm.base_url || '未配置', wide: true },
+                { label: 'API Key', value: llm.has_api_key ? '已配置' : '未配置或本地免 key' },
+                { label: '当前角色', value: `${persona.active || '未配置'}${persona.exists ? '' : '（目录不存在）'}` },
+                { label: '进程', value: process.count ? `运行 ${process.count} 个：${(process.pids || []).join(', ')}` : '未发现 run_bot.py' },
+                { label: '异常摘要', value: problemSummary },
+                { label: '最近问题', value: renderProblemList(), log: true, html: true }
+            ];
+
+            panel.innerHTML = items.map(({ label, value, wide, log, html }) => `
+                <div class="health-item${wide ? ' health-item-wide' : ''}${log ? ' health-item-log' : ''}">
+                    <div class="health-label">${escapeHtml(label)}</div>
+                    <div class="health-value${log ? ' health-log-value' : ''}"${html ? '' : ` title="${escapeHtml(value)}"`}>${html ? value : escapeHtml(value)}</div>
+                </div>
+            `).join('');
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                if (data.success) {
+                    const status = document.getElementById('botStatus');
+                    const text = document.getElementById('statusText');
+                    const panelStatus = document.getElementById('botPanelStatus');
+                    const panelText = document.getElementById('botPanelStatusText');
+                    const processes = data.status.processes || [];
+                    const pidText = processes.length ? ` (PID: ${processes.map(p => p.pid).join(', ')})` : '';
+                    lastBotRunning = Boolean(data.status.running);
+                    renderHealthPanel(data.status.health);
+
+                    if (data.status.running) {
+                        status.className = 'status running';
+                        text.textContent = '运行中' + pidText;
+                        if (panelStatus && panelText) {
+                            panelStatus.className = 'status running';
+                            panelText.textContent = '运行中' + pidText;
+                        }
+                    } else {
+                        status.className = 'status stopped';
+                        text.textContent = '已停止';
+                        if (panelStatus && panelText) {
+                            panelStatus.className = 'status stopped';
+                            panelText.textContent = '已停止';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('检查状态失败:', error);
+            }
+        }
+
+        async function startBot() {
+            try {
+                const response = await fetch('/api/bot/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(`Bot 已启动 (PID: ${data.pid})`, 'success');
+                    hideRestartHint();
+                    checkStatus();
+                    refreshBotLogs(true);
+                } else {
+                    showAlert('启动失败: ' + data.message, 'error');
+                    checkStatus();
+                }
+            } catch (error) {
+                showAlert('启动失败: ' + error.message, 'error');
+            }
+        }
+
+        async function stopBot(confirmStop = true) {
+            if (confirmStop && !confirm('确定要停止 Bot 吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bot/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Bot 已停止', 'success');
+                    hideRestartHint();
+                    checkStatus();
+                    refreshBotLogs(true);
+                } else {
+                    showAlert('停止失败: ' + data.message, 'error');
+                    checkStatus();
+                }
+            } catch (error) {
+                showAlert('停止失败: ' + error.message, 'error');
+            }
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function restartBot() {
+            try {
+                const stopResponse = await fetch('/api/bot/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const stopData = await stopResponse.json();
+                if (!stopData.success && !String(stopData.message || '').includes('未运行')) {
+                    showAlert('重启失败: ' + stopData.message, 'error');
+                    return;
+                }
+                await wait(1200);
+                const startResponse = await fetch('/api/bot/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const startData = await startResponse.json();
+                if (startData.success) {
+                    hideRestartHint();
+                    showAlert(`Bot 已重启 (PID: ${startData.pid})`, 'success');
+                    checkStatus();
+                    refreshBotLogs(true);
+                } else {
+                    showAlert('重启失败: ' + startData.message, 'error');
+                    checkStatus();
+                }
+            } catch (error) {
+                showAlert('重启失败: ' + error.message, 'error');
+            }
+        }
+
+        // 监听器相关函数
+        async function startMonitor() {
+            try {
+                const response = await fetch('/api/monitor/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('监听器启动中，正在等待服务就绪...', 'success');
+
+                    // 轮询检查监听器是否真正启动
+                    let attempts = 0;
+                    const maxAttempts = 15; // 最多检查 15 次
+                    const checkInterval = setInterval(async () => {
+                        attempts++;
+                        try {
+                            const statusResponse = await fetch('/api/monitor/status');
+                            const statusData = await statusResponse.json();
+
+                            if (statusData.success && statusData.running) {
+                                clearInterval(checkInterval);
+                                showAlert('监听器已就绪！', 'success');
+                                checkMonitorStatus();
+                                document.getElementById('monitorFrame').src = 'http://localhost:5678?' + Date.now();
+                            } else if (attempts >= maxAttempts) {
+                                clearInterval(checkInterval);
+                                showAlert('监听器启动超时，请手动刷新页面', 'error');
+                            }
+                        } catch (error) {
+                            if (attempts >= maxAttempts) {
+                                clearInterval(checkInterval);
+                                showAlert('无法连接到监听器', 'error');
+                            }
+                        }
+                    }, 1000); // 每秒检查一次
+                } else {
+                    showAlert('启动失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('启动失败: ' + error.message, 'error');
+            }
+        }
+
+        async function stopMonitor() {
+            if (!confirm('确定要停止监听器吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/monitor/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('监听器已停止', 'success');
+                    checkMonitorStatus();
+                } else {
+                    showAlert('停止失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('停止失败: ' + error.message, 'error');
+            }
+        }
+
+        function handleMonitorFrameLoad() {
+            document.getElementById('monitorError').style.display = 'none';
+            const status = document.getElementById('monitorStatus');
+            const text = document.getElementById('monitorStatusText');
+            status.className = 'status running';
+            text.textContent = '运行中';
+        }
+
+        function handleMonitorFrameError() {
+            document.getElementById('monitorError').style.display = 'block';
+            const status = document.getElementById('monitorStatus');
+            const text = document.getElementById('monitorStatusText');
+            status.className = 'status stopped';
+            text.textContent = '未运行';
+        }
+
+        function updateThemeToggle() {
+            const button = document.getElementById('themeToggle');
+            if (!button) return;
+            const isDark = document.documentElement.dataset.theme === 'dark';
+            button.textContent = isDark ? '浅色' : '深色';
+            button.setAttribute('aria-label', isDark ? '切换到浅色模式' : '切换到深色模式');
+            button.title = button.getAttribute('aria-label');
+        }
+
+        function setTheme(theme) {
+            const nextTheme = theme === 'dark' ? 'dark' : 'light';
+            document.documentElement.dataset.theme = nextTheme;
+            localStorage.setItem('webConsoleTheme', nextTheme);
+            updateThemeToggle();
+        }
+
+        function toggleTheme() {
+            setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+        }
+
+        // 检查监听器状态
+        async function checkMonitorStatus() {
+            try {
+                const response = await fetch('/api/monitor/status');
+                const data = await response.json();
+
+                const status = document.getElementById('monitorStatus');
+                const text = document.getElementById('monitorStatusText');
+
+                if (data.success && data.running) {
+                    status.className = 'status running';
+                    text.textContent = '运行中';
+                    document.getElementById('monitorError').style.display = 'none';
+                } else {
+                    status.className = 'status stopped';
+                    text.textContent = '未运行';
+                    document.getElementById('monitorError').style.display = 'block';
+                }
+            } catch (error) {
+                const status = document.getElementById('monitorStatus');
+                const text = document.getElementById('monitorStatusText');
+                status.className = 'status stopped';
+                text.textContent = '未运行';
+                document.getElementById('monitorError').style.display = 'block';
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            updateThemeToggle();
+            loadConfig();
+            checkStatus();
+            checkMonitorStatus();
+            setInterval(checkStatus, 5000);
+            setInterval(checkMonitorStatus, 10000);
+            setInterval(() => refreshBotLogs(false), 2000);
+        };
+    </script>
+</body>
+</html>
+
+
+

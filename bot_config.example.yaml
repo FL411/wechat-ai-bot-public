@@ -1,0 +1,150 @@
+# ============================================================
+# 微信 AI 机器人配置文件
+# ============================================================
+# 使用方法：
+#   1. 复制本文件为 bot_config.yaml
+#   2. 根据需要修改下方配置
+#   3. 运行 run_bot.py 启动机器人
+# ============================================================
+
+# ----------- LLM 配置 -----------
+llm:
+  # OpenAI-compatible /chat/completions 地址
+  base_url: "http://localhost:1234/v1"
+  # 本地服务可留空；在线 API 按服务商要求填写
+  api_key: ""
+  # 手动填写模型名；项目不自动拉取模型列表
+  model: "your-model-name"
+  timeout: 60
+  # 会透传到 /chat/completions；单次调用参数会覆盖这里的同名参数
+  params:
+    temperature: 0.78
+    top_p: 0.93
+    repeat_penalty: 1.08
+    repeat_last_n: 128
+    # thinking:
+    #   type: disabled
+
+# 配置示例：
+# LM Studio:
+#   base_url: "http://localhost:1234/v1"
+#   api_key: ""
+#   model: "在 LM Studio 中复制的模型名"
+#
+# 本地兼容 API（Ollama/vLLM/LocalAI 等）:
+#   base_url: "http://localhost:11434/v1"
+#   api_key: ""
+#   model: "qwen2.5:7b"
+#
+# 在线 API（OpenAI/DeepSeek/硅基流动/阿里云百炼/Groq 等）:
+#   base_url: "https://api.openai.com/v1"
+#   api_key: "sk-your-api-key"
+#   model: "gpt-4o-mini"
+
+# ----------- 微信配置 -----------
+wechat:
+  # 是否忽略群聊消息（true=只回复私聊）
+  ignore_group_chat: true
+
+  # 消息监听 WebUI 地址
+  webui_url: "http://localhost:5678"
+
+  # 消息流地址（监听器当前提供 SSE /stream）
+  ws_url: "http://localhost:5678/stream"
+
+  # 自己发出的消息回声过滤：不修改 wechat-decrypt 外部项目，在 bot 侧过滤刚发送的回推消息
+  outgoing_echo_filter:
+    enabled: true
+    window_seconds: 120
+    similarity_threshold: 0.96
+    cross_session_window_seconds: 20
+
+# ----------- 角色 / Prompt 配置 -----------
+persona:
+  # 当前默认角色，需对应 data/personas 下的目录名
+  active: "default"
+  persona_dir: "data/personas"
+
+prompt:
+  max_total_chars: 8000
+  max_history_chars: 3000
+  max_persona_chars: 2500
+  max_schedule_chars: 1000
+  recent_history_count: 12
+
+# ----------- 联网搜索配置 -----------
+search:
+  # 是否启用联网搜索
+  enabled: true
+
+  # 最大搜索结果数
+  max_results: 5
+
+  # 搜索优先级：tavily = 优先使用 Tavily，mcp = 优先使用 MCP
+  # 当主搜索失败或额度不足时，自动回退到备选方案
+  priority: ["tavily", "mcp"]
+
+  # Tavily 搜索配置（https://app.tavily.com 注册获取 API Key）
+  tavily:
+    api_key: ""                      # 可在 Web 控制台填写；留空表示不配置 Tavily
+    max_results: 5                    # Tavily 返回结果数
+
+  # AgentWebSearch-MCP 路径（如不需要可留空或注释掉）
+  agent_root: "你的AgentWebSearch-MCP路径"
+
+# ----------- 机器人行为配置 -----------
+bot:
+  # 回复延迟（秒），可用于控制回复速度
+  reply_delay: 0
+
+  # 记忆相关
+  max_memory_chars: 1200      # 用户记忆最大字符数
+  max_total_chars: 4500       # 单次 prompt 最大字符数
+  max_history_per_session: 20 # 每个会话保留的历史消息数
+
+  # 异步写入配置（会话文件批量写入）
+  async_write_enabled: true    # 是否启用异步写入
+  async_write_interval: 2.0    # 批量写入间隔（秒）
+  async_write_batch: 10        # 批量写入阈值
+
+  # 增强记忆系统（语义记忆 + 摘要 + 遗忘 + BM25混合召回 + Context压缩）
+  summary_interval: 15         # 触发摘要的对话轮数
+  max_semantic_items: 500      # 语义记忆最大条目数
+
+  # 日程系统（让 AI 有自己的日程安排，增加真人感）
+  auto_schedule: true          # 启动时自动生成/加载日程
+  use_bge: false               # 是否使用 BGE-m3 向量化（需要额外下载，首次启用会自动下载模型）
+  use_bm25: true               # 是否启用 BM25 混合召回
+  use_compression: true        # 是否启用 Context 压缩（需要 LLM）
+
+# ----------- 日志配置 -----------
+logging:
+  # 日志级别: DEBUG, INFO, WARNING, ERROR
+  # DEBUG = 详细调试信息（含 prompt 内容）
+  # INFO = 常规操作信息
+  level: "INFO"
+
+  # 是否显示 DEBUG 日志中的 prompt 内容
+  show_prompt_in_debug: false
+
+# ----------- 定时提醒配置 -----------
+reminder:
+  # 是否启用定时提醒功能
+  enabled: true
+
+  # 唤醒关键词 (检测用户是否想设置提醒)
+  keywords:
+    - "提醒"
+    - "提醒我"
+    - "定时"
+    - "分钟后"
+    - "小时后"
+    - "叫我"
+    - "每天"
+    - "明早"
+
+  # 安静时间 (不发送主动提醒)
+  quiet_hours:
+    start: "22:00"
+    end: "08:00"
+
