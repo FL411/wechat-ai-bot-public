@@ -4,9 +4,9 @@ version = "1.0.0"
 description = "微信 AI 机器人 - 基于 LLM 的微信助手"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {text = "PolyForm Noncommercial License 1.0.0"}
 authors = [
-    {name = "WeChat AI Bot Team"}
+    {name = "FL411"}
 ]
 keywords = ["wechat", "ai", "bot", "lmstudio"]
 

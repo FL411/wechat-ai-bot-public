@@ -192,5 +192,5 @@ black --check --line-length 100 .
 
 ## 许可证
 
-MIT License，详见 [LICENSE](LICENSE)。
+PolyForm Noncommercial License 1.0.0，详见 [LICENSE](LICENSE)。本项目仅允许非商业用途；未经作者许可，不得用于商业产品、付费服务、转售或其他商业变现。
 
