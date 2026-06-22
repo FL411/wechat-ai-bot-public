@@ -26,7 +26,20 @@
 - 一个可用的大模型服务，例如 LM Studio 本地服务或在线 OpenAI-compatible API
 - 本地消息监听依赖目录 `wechat-decrypt-new/`
 
-本仓库不包含 `wechat-decrypt-new/` 的源码和数据。你需要自行准备该目录。正常使用时不需要手动进入该目录启动监听器，可以在 Web 控制台里启动。
+## 外部消息监听依赖
+
+本项目的微信消息监听能力依赖第三方项目 [ylytdeng/wechat-decrypt](https://github.com/ylytdeng/wechat-decrypt)。出于版权、授权边界和本地数据安全考虑，本仓库不分发该项目源码、解密数据或运行缓存。
+
+使用监听功能前，请自行下载或克隆 `ylytdeng/wechat-decrypt`，并把它放到项目根目录下的 `wechat-decrypt-new/`：
+
+```text
+wechat-ai-bot/
+├─ wechat-decrypt-new/
+├─ web_console/
+└─ bot/
+```
+
+正常使用时不需要手动进入 `wechat-decrypt-new/` 启动监听器，可以在 Web 控制台里启动。请遵守 `ylytdeng/wechat-decrypt` 的原项目许可和使用说明。
 
 ## 安装
 
@@ -180,6 +193,4 @@ black --check --line-length 100 .
 ## 许可证
 
 MIT License，详见 [LICENSE](LICENSE)。
-
-
 
